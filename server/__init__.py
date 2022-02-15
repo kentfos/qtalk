@@ -38,8 +38,11 @@ class msgServer(QThread):
                 else:
                     print(f"Unknown message type: {msg_type}")
                     continue
-                if not path.exists(f'cache/{uid}.png'):
-                    self.thread_fetch(f'https://q1.qlogo.cn/g?b=qq&nk={uid}&s=140&timestamp=', f"cache/{uid}.png")
+                if not path.exists(f"cache/{uid}.png"):
+                    self.thread_fetch(
+                        f"https://q1.qlogo.cn/g?b=qq&nk={uid}&s=140&timestamp=",
+                        f"cache/{uid}.png",
+                    )
                 mid = data["message_id"]
                 stime = time.strftime("%H:%M:%S", time.localtime(data["time"]))
                 card = data["sender"]["card"]
@@ -47,8 +50,85 @@ class msgServer(QThread):
                 rawmsg = data["raw_message"]
                 handled_msg = self.handle_cqmsg(rawmsg)
                 # log = f"<small>[{stime}] [{uid}]</small> <b>{sender}</b> :<br>{handled_msg}<br><br>\n"
-                log = f'<div><span><img src="cache/{uid}.png" width="32" height="32" style="object-fit:cover;"></span><div>{sender}</div' \
-                      f'><div><b>{handled_msg}</b></div></div> '
+                release = False
+                if release:
+                    log = (
+                        f'<div><span><img src="cache/{uid}.png" width="32" height="32" style="object-fit:cover;"></span><div>{sender}</div'
+                        f"><div><b>{handled_msg}</b></div></div> "
+                    )
+                else:
+                    sex = data["sender"]["sex"]
+                    nickname = data["sender"]["nickname"]
+                    card_name = data["sender"]["card"]
+                    role = "member"  # "admin", "owner"
+                    reply_msgid = 0
+                    reply_msg = ""
+                    ext_msg = ""
+                    at_info = ""
+                    log = f"""
+<table width="80%">
+    <tr>
+        <td valign="bottom" width="64px">&nbsp;<img height="64" src="cache/{uid}.png" width="64"/></td>
+        <td width="100%">
+        <table border="1" width="100%">
+            <tr>
+                <td>
+                <table width="100%">
+                    <tr>
+                        <td width="10px">&nbsp;</td>
+                        <td><font color="#888888">
+                        <table width="100%">
+                            <tr>
+                                <td width="32px"><{sex}/></td>
+                                <td width="40%">{nickname}</td>
+                                <td  align=" right">{card_name}</td>
+                            </tr>
+                        </table>
+                        </font></td>
+                        <td width="10px">&nbsp;</td>
+                    </tr>
+                    <tr>
+                        <td width="10px"></td>
+                        <td>
+                        <!--table width="100%">
+                            <tr>
+                                <td align="left">{reply_msg}</td>
+                            </tr>
+                        </table-->
+                        <table width="100%">
+                            <tr>
+                                <td align="left">{handled_msg}</td>
+                            </tr>
+                        </table>
+                        <!--table width="100%">
+                            <tr>
+                                <td align="left">{ext_msg}</td>
+                            </tr>
+                        </table-->
+                        </td>
+                        <td width="10px"></td>
+                    </tr>
+                    <tr>
+                        <td width="10px">&nbsp;</td>
+                        <td>
+                        <table width="100%">
+                            <tr>
+                                <td align="right"><font color="#888888">{stime}</font></td>
+                            </tr>
+                        </table>
+                        </td>
+                        <td width="10px">&nbsp;</td>
+                    </tr>
+                </table>
+                </td>
+            </tr>
+        </table>
+        </td>
+        <td valign="top"><!--img src="ui/{role}.png" width="32" --><role/>&nbsp;</td>
+    </tr>
+</table>
+</body>
+"""
                 print(f"message_id: {mid}")
                 self.new_msg_signal.emit(chat_info, log)
                 with open(f"log/{chat_info[0]}", "a") as f:
@@ -76,12 +156,14 @@ class msgServer(QThread):
                     if cq_image_name and cq_image_url:
                         self.thread_fetch(cq_image_url[0], f"cache/{cq_image_name[0]}")
                         if cq_type == "image":
-                            yield f'<img src="cache/{cq_image_name[0]}" height="300"><br>'
+                            yield f'<a href="#cache/{cq_image_name[0]}" target="_blank"><img src="cache/{cq_image_name[0]}" width="300"/></a>'
                         else:
-                            yield f'[闪照]<br><img src="cache/{cq_image_name[0]}" height="300"><br>'
+                            yield f'<a href="#cache/{cq_image_name[0]}" target="_blank">[闪照]<br><img src="cache/{cq_image_name[0]}" width="300"/></a>'
                 elif cq_type == "face":
                     index = cq_data.index("text=")
-                    yield f"[表情: {cq_data[index+5:]}] "
+                    face_index = re.findall(r"\d+", cq_data)
+                    face_name = "{:0>3}".format(face_index[0])
+                    yield f"<img src='face/{face_name}' width=24 />[表情: {cq_data[index+5:]}]"
                 elif cq_type == "record":
                     yield "[录音] "
                 elif cq_type == "video":
