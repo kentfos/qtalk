@@ -1,4 +1,6 @@
 import re, json, time
+from os import path
+
 from server.config import WSHOST, TOKEN
 from PyQt5.QtCore import pyqtSignal, QThread
 from threading import Thread
@@ -36,13 +38,17 @@ class msgServer(QThread):
                 else:
                     print(f"Unknown message type: {msg_type}")
                     continue
+                if not path.exists(f'cache/{uid}.png'):
+                    self.thread_fetch(f'https://q1.qlogo.cn/g?b=qq&nk={uid}&s=140&timestamp=', f"cache/{uid}.png")
                 mid = data["message_id"]
                 stime = time.strftime("%H:%M:%S", time.localtime(data["time"]))
                 card = data["sender"]["card"]
                 sender = card if card else data["sender"]["nickname"]
                 rawmsg = data["raw_message"]
                 handled_msg = self.handle_cqmsg(rawmsg)
-                log = f"<small>[{stime}] [{uid}]</small> <b>{sender}</b> :<br>{handled_msg}<br><br>\n"
+                # log = f"<small>[{stime}] [{uid}]</small> <b>{sender}</b> :<br>{handled_msg}<br><br>\n"
+                log = f'<div><span><img src="cache/{uid}.png" width="32" height="32" style="object-fit:cover;"></span><div>{sender}</div' \
+                      f'><div><b>{handled_msg}</b></div></div> '
                 print(f"message_id: {mid}")
                 self.new_msg_signal.emit(chat_info, log)
                 with open(f"log/{chat_info[0]}", "a") as f:

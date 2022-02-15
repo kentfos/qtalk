@@ -52,6 +52,7 @@ class MainWindow(QMainWindow):
         self.msgServer = msgServer()
         self.msgServer.start()
         self.self_info = self.apiServer.get_login_info()
+        self.ui.avatarButton.setIcon(QIcon("ui/avator.jpg"))
         self.msgServer.new_msg_signal.connect(self.updateMsg)
         self.msgServer.update_logo_signal.connect(self.changeLogo)
         self.msgServer.close_window_signal.connect(self.ui.close)
@@ -71,6 +72,8 @@ class MainWindow(QMainWindow):
 
     def updateMsg(self, chat_info, msg):
         print(msg)
+        self.ui.chatTitle.setText(chat_info[1])
+        self.ui.chatInfo.setText(str(chat_info[0]))
         if chat_info[1] not in self.chat_dict:
             print(f"New chat: {chat_info}\n")
             self.chat_dict[chat_info[1]] = chat_info[0]
