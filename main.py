@@ -64,14 +64,81 @@ class MainWindow(QMainWindow):
         if gid:
             self.ui.inputBox.clear()
             self.apiServer.send_msg(gid, msg)
-            log = f"<small>[{stime}] [{self.self_info[0]}]</small> <b>{self.self_info[1]}</b> :<br>{msg}<br><br>\n"
+            release = False
+            if release:
+                log = f"<small>[{stime}] [{self.self_info[0]}]</small> <b>{self.self_info[1]}</b> :<br>{msg}<br><br>\n"
+            else:
+                log = f"""
+<table width="80%" align="right">
+    <tr>
+        <td valign="bottom" width="64px">&nbsp;<!--img height="64" src="cache/uid.png" width="64"/--></td>
+        <td width="100%">
+        <table border="1" width="100%"  bgcolor="#ccff99">
+            <tr>
+                <td>
+                <table width="100%">
+                    <tr>
+                        <td width="10px">&nbsp;</td>
+                        <td><font color="#888888">
+                        <table width="100%">
+                            <tr>
+                                <td width="32px"><sex/></td>
+                                <td width="40%">{self.self_info[0]}</td>
+                                <td  align=" right">{self.self_info[1]}</td>
+                            </tr>
+                        </table>
+                        </font></td>
+                        <td width="10px">&nbsp;</td>
+                    </tr>
+                    <tr>
+                        <td width="10px"></td>
+                        <td>
+                        <!--table width="100%">
+                            <tr>
+                                <td align="left">reply_msg</td>
+                            </tr>
+                        </table-->
+                        <table width="100%">
+                            <tr>
+                                <td align="left">{msg}</td>
+                            </tr>
+                        </table>
+                        <!--table width="100%">
+                            <tr>
+                                <td align="left">ext_msg</td>
+                            </tr>
+                        </table-->
+                        </td>
+                        <td width="10px"></td>
+                    </tr>
+                    <tr>
+                        <td width="10px">&nbsp;</td>
+                        <td>
+                        <table width="100%">
+                            <tr>
+                                <td align="right"><font color="#888888">{stime}</font></td>
+                            </tr>
+                        </table>
+                        </td>
+                        <td width="10px">&nbsp;</td>
+                    </tr>
+                </table>
+                </td>
+            </tr>
+        </table>
+        </td>
+        <td valign="top"><!--img src="ui/role.png" width="32" --><role/>&nbsp;</td>
+    </tr>
+</table>
+</body>
+"""
             self.ui.msgBox.append(log)
             self.ui.msgBox.ensureCursorVisible()
             with open(f"log/{gid}", "a") as f:
                 f.write(log)
 
     def updateMsg(self, chat_info, msg):
-        print(msg)
+        # print(msg)
         self.ui.chatTitle.setText(chat_info[1])
         self.ui.chatInfo.setText(str(chat_info[0]))
         if chat_info[1] not in self.chat_dict:
